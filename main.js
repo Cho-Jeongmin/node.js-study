@@ -51,7 +51,7 @@ var app = http.createServer(function(request,response){
         response.writeHead(200);
         response.end(template);
       });
-    } else {//홈페이지가 아닌 경우(id 있는 경우)
+    } else {//홈페이지가 아닌 경우(id가 있는 경우)
       fs.readdir('./data', function(error, filelist){//data디렉토리의 파일 리스트 가져오기.
         fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){//파일 읽기
           var title = queryData.id;
@@ -68,8 +68,9 @@ var app = http.createServer(function(request,response){
     fs.readdir('./data', function(error, filelist){//data디렉토리의 파일
       var title = 'create';
       var list = templateList(filelist);
-      var template = templateHTML(title, list, `
-        <form action="http://localhost:3000/create_process" method="post">
+      var template = templateHTML(title, list,
+        `
+        <form action="/create_process" method="post">
           <p><input type="text" name="title" place holder="title"></p>
           <p>
             <textarea name="description" placeholder="description"></textarea>
@@ -78,7 +79,7 @@ var app = http.createServer(function(request,response){
             <input type="submit">
           </p>
         </form>
-      `, '');
+        `, '');
       response.writeHead(200);
       response.end(template);
     });
@@ -95,6 +96,28 @@ var app = http.createServer(function(request,response){
       fs.writeFile(`data/${title}`, description, 'utf8', function(err){
         response.writeHead(302, {Location: `/?id=${title}`});//리다이렉션
         response.end('success');
+      });
+    });
+  } else if(pathname === "/update"){
+    fs.readdir('./data', function(error, filelist){//data디렉토리의 파일 리스트 가져오기.
+      fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){//파일 읽기
+        var title = queryData.id;
+        var list = templateList(filelist);
+        var template = templateHTML(title, list,
+          `
+          <form action="/update_process" method="post">
+            <input type="hidden" name="id" value=${title}>
+            <p><input type="text" name="title" place holder="title" value=${title}></p>
+            <p>
+              <textarea name="description" placeholder="description">${description}</textarea>
+            </p>
+            <p>
+              <input type="submit">
+            </p>
+          </form>
+          `, '');
+        response.writeHead(200);
+        response.end(template);
       });
     });
   } else {//pathname이 '/'가 아닌 다른 경로로 접속할 경우(유효하지 않은 주소)
