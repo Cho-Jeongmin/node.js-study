@@ -3,7 +3,7 @@ var fs = require('fs');
 var url = require('url');//url 모듈 요청
 var qs = require('querystring');
 
-function templateHTML(title, list, body){
+function templateHTML(title, list, body, control){
   return `
   <!doctype html>
   <html>
@@ -14,7 +14,7 @@ function templateHTML(title, list, body){
   <body>
     <h1><a href="/">WEB2</a></h1>
     ${list}
-    <a href="/create">create</a>
+    ${control}
     ${body}
   </body>
   </html>
@@ -45,16 +45,20 @@ var app = http.createServer(function(request,response){
         var title = 'Welcome';
         var description = 'Hello, Node.js';
         var list = templateList(filelist);
-        var template = templateHTML(title, list, `<h2>${title}</h2>${description}`);
+        var template = templateHTML(title, list,
+          `<h2>${title}</h2>${description}`,
+          `<a href="/create">create</a>`);
         response.writeHead(200);
         response.end(template);
       });
-    } else {//홈페이지가 아닌 경우
+    } else {//홈페이지가 아닌 경우(id 있는 경우)
       fs.readdir('./data', function(error, filelist){//data디렉토리의 파일 리스트 가져오기.
         fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){//파일 읽기
           var title = queryData.id;
           var list = templateList(filelist);
-          var template = templateHTML(title, list, `<h2>${title}</h2>${description}`);
+          var template = templateHTML(title, list,
+            `<h2>${title}</h2>${description}`,
+            `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
           response.writeHead(200);
           response.end(template);
         });
@@ -74,7 +78,7 @@ var app = http.createServer(function(request,response){
             <input type="submit">
           </p>
         </form>
-      `);
+      `, '');
       response.writeHead(200);
       response.end(template);
     });
