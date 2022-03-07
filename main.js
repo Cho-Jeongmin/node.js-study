@@ -81,20 +81,18 @@ var app = http.createServer(function(request,response){
   } else if(pathname === "/create_process"){
     var body = '';
     request.on('data', function(data){
-      //'data'는 이벤트
-      //조각조각의 데이터를 서버쪽에서 수신할때마다 이 콜백함수를 호출하기로 약속되어있음. data라는 인자를 통해 수신한 정보를 줌.
-      body = body + data;//콜백이 실행할때마다 data를 추가함.
+      body = body + data;
     });
     request.on('end', function(){
-      //'end'는 이벤트임
-      //더이상 들어올 데이터가 없으면 실행되는 콜백함수
-      var post = qs.parse(body);//객체
+      var post = qs.parse(body);
       console.log(post);
       var title = post.title;
       var description = post.description;
+      fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+        response.writeHead(302, {Location: `/?id=${title}`});//리다이렉션
+        response.end('success');
+      });
     });
-    response.writeHead(200);
-    response.end('success');
   } else {//pathname이 '/'가 아닌 다른 경로로 접속할 경우(유효하지 않은 주소)
     response.writeHead(404);
     response.end('Not found');
