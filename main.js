@@ -64,14 +64,14 @@ var app = http.createServer(function(request,response){
         });
       });
     }
-  } else if(pathname === "/create"){//글쓰기 창인 경우
+  } else if(pathname === '/create'){//글쓰기 창인 경우
     fs.readdir('./data', function(error, filelist){//data디렉토리의 파일
       var title = 'create';
       var list = templateList(filelist);
       var template = templateHTML(title, list,
         `
         <form action="/create_process" method="post">
-          <p><input type="text" name="title" place holder="title"></p>
+          <p><input type="text" name="title" placeholder="title"></p>
           <p>
             <textarea name="description" placeholder="description"></textarea>
           </p>
@@ -83,7 +83,8 @@ var app = http.createServer(function(request,response){
       response.writeHead(200);
       response.end(template);
     });
-  } else if(pathname === "/create_process"){
+  } else if(pathname === '/create_process'){//글쓰기 처리
+    //post 방식으로 전송된 데이터 받기
     var body = '';
     request.on('data', function(data){
       body = body + data;
@@ -98,7 +99,7 @@ var app = http.createServer(function(request,response){
         response.end('success');
       });
     });
-  } else if(pathname === "/update"){
+  } else if(pathname === '/update'){//글수정 창인 경우
     fs.readdir('./data', function(error, filelist){//data디렉토리의 파일 리스트 가져오기.
       fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description){//파일 읽기
         var title = queryData.id;
@@ -106,8 +107,8 @@ var app = http.createServer(function(request,response){
         var template = templateHTML(title, list,
           `
           <form action="/update_process" method="post">
-            <input type="hidden" name="id" value=${title}>
-            <p><input type="text" name="title" place holder="title" value=${title}></p>
+            <input type="hidden" name="id" value="${title}">
+            <p><input type="text" name="title" placeholder="title" value="${title}"></p>
             <p>
               <textarea name="description" placeholder="description">${description}</textarea>
             </p>
@@ -115,9 +116,30 @@ var app = http.createServer(function(request,response){
               <input type="submit">
             </p>
           </form>
-          `, '');
+          `,
+          `
+          <a href="/create">crate</a> <a href="/update?id=${title}">update</a>
+          `
+        );
         response.writeHead(200);
         response.end(template);
+      });
+    });
+  } else if(pathname === '/update_process') {//글수정 처리
+    var body = '';
+    request.on('data', function(data){
+      body = body + data;
+    });
+    request.on('end', function(){
+      var post = qs.parse(body);
+      var id = post.id;//기존 제목
+      var title = post.title;//새로운 제목
+      var description = post.description;
+      fs.rename(`data/${id}`, `data/${title}`, function(error){
+        fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+          response.writeHead(302, {Location: `/?id=${title}`});//리다이렉션
+          response.end('success');
+        });
       });
     });
   } else {//pathname이 '/'가 아닌 다른 경로로 접속할 경우(유효하지 않은 주소)
